@@ -30,20 +30,21 @@ mydb = mysql.connector.connect(
 
 
 mycursor = mydb.cursor()
-the_query="""select s.sales_outlet_id,sum(s.order) as sums from sales_reciepts s where(select s2.sales_outlet_id from sales_outlet s2 
+
+most_selling_iteam="""select s.sales_outlet_id,sum(s.order) as sums from sales_reciepts s where(select s2.sales_outlet_id from sales_outlet s2 
 where s.sales_outlet_id = s2.sales_outlet_id 
 )GROUP BY sales_outlet_id 
 ORDER BY sum(s.order) DESC
 LIMIT 1  
 ;"""
 
-mycursor.execute(the_query)
+mycursor.execute(most_selling_iteam)
 users = mycursor.fetchall()
 for i in users:
     print(i)
 
 
-the_query2="""
+peak_hour="""
 SELECT s.sales_outlet_id, s.transaction_time, MAX(s.order) AS max_order
 FROM sales_reciepts s 
 where (select s2.sales_outlet_id from sales_outlet s2 
@@ -54,8 +55,22 @@ ORDER BY max_order DESC
 LIMIT 0, 1000;"""
 
 
-mycursor.execute(the_query2)
+mycursor.execute(peak_hour)
 users2 = mycursor.fetchall()
 for i in users2:
     print(i)
 
+
+best_performing="""
+select s.sales_outlet_id,month(s.transaction_date) as month,max(s.order) from sales_reciepts s
+where(select s2.sales_outlet_id from sales_outlet s2 
+where s.sales_outlet_id = s2.sales_outlet_id )
+GROUP BY s.sales_outlet_id ,month(s.transaction_date)
+ORDER BY max(s.order)   DESC
+LIMIT 0, 1000;"""
+
+
+mycursor.execute(best_performing)
+users2 = mycursor.fetchall()
+for i in users2:
+    print(i)
