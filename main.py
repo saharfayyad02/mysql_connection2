@@ -1,76 +1,70 @@
-import pandas as pd
 from sqlalchemy import create_engine
-import mysql.connector
+from Controller.controller import Conttroller
 
 
-df = pd.read_csv('C:\\Users\\user\\Desktop\\april\\201904 sales reciepts.csv')
-df_customer = pd.read_csv('C:\\Users\\user\\Desktop\\april\\customer.csv')
-df_product = pd.read_csv('C:\\Users\\user\\Desktop\\april\\product.csv')
-df_sales = pd.read_csv('C:\\Users\\user\\Desktop\\april\\sales_outlet.csv')
+def request(file):
+       req = Conttroller.req(file)
+       return req
+
+def send_data_tosql(engine,table_name,df):
+    data=Conttroller.send_data(engine,table_name,df)
+    return data
+
+def get_queries(queries,engine):
+    query = Conttroller.get_data(queries,engine)
+    return query
+
+def viewdata(data):
+    data =Conttroller.viewdata(data)
+    return data
+
+if __name__ == '__main__':
+    recipit_sales = request('C:\\Users\\user\\Desktop\\april\\201904 sales reciepts.csv')
+    customer=request('C:\\Users\\user\\Desktop\\april\\customer.csv')
+    product=request('C:\\Users\\user\\Desktop\\april\\product.csv')
+    sales=request('C:\\Users\\user\\Desktop\\april\\sales_outlet.csv')
+
+    engine = create_engine('mysql+mysqlconnector://root:sahar2001@localhost:3306/sys')
+
+    send_data_tosql(engine,'sales_reciepts',recipit_sales)
+    send_data_tosql(engine,'customer',customer)
+    send_data_tosql(engine,'product',product)
+    send_data_tosql(engine,'sales_outlet',sales)
+
+    engine.dispose()
+
+    most_selling_item_query="""select s.sales_outlet_id,sum(s.order) as sums from sales_reciepts s where(select s2.sales_outlet_id from sales_outlet s2
+    where s.sales_outlet_id = s2.sales_outlet_id
+    )GROUP BY sales_outlet_id
+    ORDER BY sum(s.order) DESC
+    LIMIT 1
+    ;"""
+
+    peak_hour_query = """
+    SELECT s.sales_outlet_id, s.transaction_time, MAX(s.order) AS max_order
+    FROM sales_reciepts s
+    where (select s2.sales_outlet_id from sales_outlet s2
+    where s.sales_outlet_id = s2.sales_outlet_id
+    )
+    GROUP BY s.sales_outlet_id,s.transaction_time
+    ORDER BY max_order DESC;"""
+
+    best_performing_query="""
+    select s.sales_outlet_id,month(s.transaction_date) as month,max(s.order) from sales_reciepts s
+    where(select s2.sales_outlet_id from sales_outlet s2
+    where s.sales_outlet_id = s2.sales_outlet_id )
+    GROUP BY s.sales_outlet_id ,month(s.transaction_date)
+    ORDER BY max(s.order)  DESC;"""
+
+    most_selling_item=get_queries(most_selling_item_query,engine)
+    viewdata(most_selling_item)
+
+    peak_hour = get_queries(peak_hour_query,engine)
+    viewdata(peak_hour)
+
+    best_performing = get_queries(best_performing_query,engine)
+    viewdata(best_performing)
 
 
-engine = create_engine('mysql+mysqlconnector://root:sahar2001@localhost:3306/sys')
-
-table_name = 'sales_reciepts'
-df.to_sql(table_name, con=engine, if_exists='replace', index=False)
-df_customer.to_sql('customer', con=engine, if_exists='replace', index=False)
-df_product.to_sql('product', con=engine, if_exists='replace', index=False)
-df_sales.to_sql('sales_outlet', con=engine, if_exists='replace', index=False)
-
-engine.dispose()
 
 
-mydb = mysql.connector.connect(
-    host= "localhost",
-    user="root",
-    password="sahar2001",
-    port= "3306",
-    database="sys",
-)
-
-
-mycursor = mydb.cursor()
-
-most_selling_iteam="""select s.sales_outlet_id,sum(s.order) as sums from sales_reciepts s where(select s2.sales_outlet_id from sales_outlet s2 
-where s.sales_outlet_id = s2.sales_outlet_id 
-)GROUP BY sales_outlet_id 
-ORDER BY sum(s.order) DESC
-LIMIT 1  
-;"""
-
-mycursor.execute(most_selling_iteam)
-users = mycursor.fetchall()
-for i in users:
-    print(i)
-
-
-peak_hour="""
-SELECT s.sales_outlet_id, s.transaction_time, MAX(s.order) AS max_order
-FROM sales_reciepts s 
-where (select s2.sales_outlet_id from sales_outlet s2 
-where s.sales_outlet_id = s2.sales_outlet_id 
-)
-GROUP BY s.sales_outlet_id,s.transaction_time
-ORDER BY max_order DESC
-LIMIT 0, 1000;"""
-
-
-mycursor.execute(peak_hour)
-users2 = mycursor.fetchall()
-for i in users2:
-    print(i)
-
-
-best_performing="""
-select s.sales_outlet_id,month(s.transaction_date) as month,max(s.order) from sales_reciepts s
-where(select s2.sales_outlet_id from sales_outlet s2 
-where s.sales_outlet_id = s2.sales_outlet_id )
-GROUP BY s.sales_outlet_id ,month(s.transaction_date)
-ORDER BY max(s.order)   DESC
-LIMIT 0, 1000;"""
-
-
-mycursor.execute(best_performing)
-users2 = mycursor.fetchall()
-for i in users2:
-    print(i)
