@@ -1,5 +1,5 @@
 import pandas as pd
-from model.model import Model
+from Model.model import Model
 from View.view import Viewdata
 from pandas._libs.lib import _NoDefault
 

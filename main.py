@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from Controller.controller import Conttroller
-from model.model import Customer
+from Model.model import Customer
 
 
 def request(file):

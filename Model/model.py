@@ -100,12 +100,8 @@ class Customer:
         best_performing = best_performint_weekmonth_of_the_year.head().to_dict(orient='records')
         print(json.dumps(best_performing, indent=4))
 
-
-
-
-
-
         new_customer = Customer
+
 
 
 
